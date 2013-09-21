@@ -6,7 +6,7 @@
     // Defaults
     self.defaults = {
       imagePath: '',
-      pathToPHP: 'fullscreenImage.php,
+      pathToPHP: 'fullscreenImage.php',
       widthBreakPoints: [
         100,
         300,
