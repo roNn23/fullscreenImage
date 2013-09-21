@@ -3,70 +3,100 @@
 class fullscreenImage {
 
   public function listenForPost() {
-    $imagePath   = $_POST['imagePath'];
-    $imageName   = basename($imagePath);
-    $imageSize   = getimagesize($imagePath);
-    $imageWidth  = $imageSize[0];
-    $imageHeight = $imageSize[1];
+    $this->origImagePath   = $_POST['imagePath'];
+    $this->origImageName   = basename($this->origImagePath);
+    $origImageSize   = getimagesize($this->origImagePath);
+    $this->origImageWidth  = $origImageSize[0];
+    $this->origImageHeight = $origImageSize[1];
 
-    $winWidth  = $_POST['winWidth'];
-    $winHeight = $_POST['winHeight'];
+    $this->winWidth  = $_POST['winWidth'];
+    $this->winHeight = $_POST['winHeight'];
 
-    $widthBreakPoints = $_POST['widthBreakPoints'];
+    $this->widthBreakPoints = $_POST['widthBreakPoints'];
 
-    foreach($widthBreakPoints as $widthBreakPoint):
-      if($widthBreakPoint < $winWidth)
+    $newImageData = $this->getNewImageData();
+
+    $this->imageFolder = 'images/'.$newImageData->width.'/';
+
+    $this->newImageSavePath = $this->imageFolder.$this->origImageName;
+
+    if(is_file($this->newImageSavePath)):
+      $this->returnImageData();
+    endif;
+
+    $this->resizeImage();
+
+    $this->returnImageData();
+  }
+
+  private function returnImageData() {
+    $imageData = array(
+      'width'  => $this->getImageDimensions($this->newImageSavePath)->width,
+      'height' => $this->getImageDimensions($this->newImageSavePath)->height,
+      'path'   => $this->newImageSavePath
+    );
+    echo json_encode($imageData);
+    exit;
+  }
+
+  private function resizeImage() {
+    $newImage = imagecreatetruecolor($newImageData->width, $newImageData->height);
+
+    $sourceImage = imagecreatefromjpeg($this->origImagePath);
+
+    imagecopyresampled(
+      $newImage,
+      $sourceImage,
+      0,
+      0,
+      0,
+      0,
+      $newImageData->width,
+      $newImageData->height,
+      $this->origImageWidth,
+      $this->origImageHeight
+    );
+
+    $this->imageFolder = 'images/'.$newImageData->width.'/';
+
+    if(!is_dir($this->imageFolder))
+      mkdir($this->imageFolder, 0777, true);
+
+    imagejpeg($newImage, $this->newImageSavePath);
+  }
+
+  private function getNewImageData() {
+    foreach($this->widthBreakPoints as $widthBreakPoint):
+      if($widthBreakPoint < $this->winWidth)
         continue;
 
       $newImageWidth = $widthBreakPoint;
+
+      $imageRatio = $this->origImageWidth / $this->origImageHeight;
+
+      $newImageHeight = $newImageWidth / $imageRatio;
+
+      if($newImageHeight < $this->winHeight)
+        continue;
+
+      $newImageRatio = $newImageWidth / $newImageHeight;
+
+      if($newImageRatio > $imageRatio)
+        $newImageWidth = $newImageHeight * $imageRatio;
+
       break;
     endforeach;
 
-    $imageFolder = 'images/'.$newImageWidth.'/';
+    $dimensions = new stdClass();
 
-    $newImageSavePath = $imageFolder.$imageName;
+    $dimensions->width  = $newImageWidth;
+    $dimensions->height = $newImageHeight;
 
-    if(is_file($newImageSavePath)):
-      $imageData = array(
-        'width'  => $this->getImageDimensions($newImageSavePath)->width,
-        'height' => $this->getImageDimensions($newImageSavePath)->height,
-        'path'   => $newImageSavePath
-      );
-      echo json_encode($imageData);
-      exit;
-    endif;
-
-    $imageRatio = $imageWidth / $imageHeight;
-
-    $newImageHeight = -1;
-    $newImageRatio = $newImageWidth / $newImageHeight;
-
-    if($newImageRatio > $imageRatio)
-      $newImageWidth = $newImageHeight * $imageRatio;
-    else
-      $newImageHeight = $newImageWidth / $imageRatio;
-
-    $newImage = imagecreatetruecolor($newImageWidth, $newImageHeight);
-    $sourceImage = imagecreatefromjpeg($imagePath);
-    imagecopyresampled($newImage, $sourceImage, 0, 0, 0, 0, $newImageWidth, $newImageHeight, $imageWidth, $imageHeight);
-
-    $imageFolder = 'images/'.$newImageWidth.'/';
-
-    if(!is_dir($imageFolder))
-      mkdir($imageFolder, 0777, true);
-
-    imagejpeg($newImage, $newImageSavePath);
-
-    $imageData = array(
-      'width'  => $this->getImageDimensions($newImageSavePath)->width,
-      'height' => $this->getImageDimensions($newImageSavePath)->height,
-      'path'   => $newImageSavePath
-    );
-    echo json_encode($imageData);
+    return $dimensions;
   }
 
-  private function getImageDimensions($imagePath) {
-    list($width, $height) = getimagesize($imagePath);
+  private function getImageDimensions() {
+    list($width, $height) = getimagesize($this->origImagePath);
 
     $dimensions = new stdClass();
 
