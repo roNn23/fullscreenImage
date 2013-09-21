@@ -24,7 +24,7 @@ class fullscreenImage {
       $this->returnImageData();
     endif;
 
-    $this->resizeImage();
+    $this->resizeImage($newImageData);
 
     $this->returnImageData();
   }
@@ -39,7 +39,7 @@ class fullscreenImage {
     exit;
   }
 
-  private function resizeImage() {
+  private function resizeImage($newImageData) {
     $newImage = imagecreatetruecolor($newImageData->width, $newImageData->height);
 
     $sourceImage = imagecreatefromjpeg($this->origImagePath);
