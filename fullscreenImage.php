@@ -3,9 +3,10 @@
 class fullscreenImage {
 
   public function listenForPost() {
+    $this->rootPath        = $_POST['rootPath'];
     $this->origImagePath   = $_POST['imagePath'];
     $this->origImageName   = basename($this->origImagePath);
-    $origImageSize   = getimagesize($this->origImagePath);
+    $origImageSize         = getimagesize($this->origImagePath);
     $this->origImageWidth  = $origImageSize[0];
     $this->origImageHeight = $origImageSize[1];
 

@@ -7,6 +7,7 @@
     self.defaults = {
       imagePath: '',
       pathToPHP: 'fullscreenImage.php',
+      rootPath: '/',
       widthBreakPoints: [
         100,
         300,
@@ -149,7 +150,8 @@
         'winHeight': self.winHeight,
         'action': 'getSizedImage',
         'imagePath': self.opts.imagePath,
-        'widthBreakPoints': self.opts.widthBreakPoints
+        'widthBreakPoints': self.opts.widthBreakPoints,
+        'rootPath': self.opts.rootPath
       };
 
       $.post(self.opts.pathToPHP, postVars, function(imageData) {
