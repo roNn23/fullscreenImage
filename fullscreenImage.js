@@ -6,6 +6,7 @@
     // Defaults
     self.defaults = {
       imagePath: '',
+      pathToPHP: 'fullscreenImage.php,
       widthBreakPoints: [
         100,
         300,
@@ -151,7 +152,7 @@
         'widthBreakPoints': self.opts.widthBreakPoints
       };
 
-      $.post('fullscreenImage.php', postVars, function(imageData) {
+      $.post(self.opts.pathToPHP, postVars, function(imageData) {
         callback(imageData);
       }, 'json');
     },
