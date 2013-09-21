@@ -4,7 +4,7 @@ class fullscreenImage {
 
   public function listenForPost() {
     $this->rootPath        = $_POST['rootPath'];
-    $this->origImagePath   = $_POST['imagePath'];
+    $this->origImagePath   = $this->rootPath.$_POST['imagePath'];
     $this->origImageName   = basename($this->origImagePath);
     $origImageSize         = getimagesize($this->origImagePath);
     $this->origImageWidth  = $origImageSize[0];
@@ -17,7 +17,7 @@ class fullscreenImage {
 
     $newImageData = $this->getNewImageData();
 
-    $this->imageFolder = 'images/'.$newImageData->width.'/';
+    $this->imageFolder = $this->rootPath.'images/'.$newImageData->width.'/';
 
     $this->newImageSavePath = $this->imageFolder.$this->origImageName;
 
@@ -31,10 +31,12 @@ class fullscreenImage {
   }
 
   private function returnImageData() {
+    $returnPathWithoutRootPath = str_replace($this->rootPath, '', $this->newImageSavePath);
+
     $imageData = array(
       'width'  => $this->getImageDimensions($this->newImageSavePath)->width,
       'height' => $this->getImageDimensions($this->newImageSavePath)->height,
-      'path'   => $this->newImageSavePath
+      'path'   => $returnPathWithoutRootPath
     );
     echo json_encode($imageData);
     exit;
@@ -57,8 +59,6 @@ class fullscreenImage {
       $this->origImageWidth,
       $this->origImageHeight
     );
-
-    $this->imageFolder = 'images/'.$newImageData->width.'/';
 
     if(!is_dir($this->imageFolder))
       mkdir($this->imageFolder, 0777, true);

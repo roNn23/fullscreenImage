@@ -1,5 +1,6 @@
 $(function() {
   $('.fullscreenImage').fullscreenImage({
-    imagePath: 'example.jpg'
+    imagePath: 'example.jpg',
+    rootPath: '/var/www/fullscreenImage/'
   });
 });
