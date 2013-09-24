@@ -30,12 +30,14 @@
 
     // Privates
     self.$wrapper = $(el);
+    self.$image   = {};
 
     self.$window   = $(window);
     self.$document =  $(document);
 
-    self.winWidth = 0;
-    self.winHeight = 0;
+    self.winWidth       = 0;
+    self.winHeight      = 0;
+    self.refreshTimeout = 0;
   }
 
   // Separate functionality from object creation
@@ -77,7 +79,7 @@
     initImage: function(imageData) {
       var self = this;
 
-      self.createImage(imageData);
+      self.placeImage(imageData);
       self.resizeImage(imageData);
 
       self.$window.resize(function() {
@@ -87,12 +89,26 @@
       self.$wrapper.fadeIn();
     },
 
+    refreshImage: function() {
+      var self = this;
+
+      clearTimeout(self.refreshTimeout);
+
+      self.refreshTimeout = setTimeout(function() {
+        self.loadImage(function(imageData) {
+          self.placeImage(imageData);
+          self.resizeImage(imageData);
+        });
+      }, 200);
+    },
+
     onResize: function() {
       var self = this;
 
       self.$window.resize(function() {
         self.initVars();
         self.resizeWrapper();
+        self.refreshImage();
       });
     },
 
@@ -159,10 +175,21 @@
       }, 'json');
     },
 
-    createImage: function(imageData) {
+    placeImage: function(imageData) {
       var self = this;
 
-      self.$image = $('<img src="' + imageData.path + '">');
+      if(self.$image instanceof jQuery == false) {
+        self.$image = $('<img src="' + imageData.path + '">');
+      } else {
+        // Copy image, add new one, delete old to prevent flickering in webkit
+        $clonedImage = self.$image.clone();
+        $clonedImage.appendTo(self.$wrapper);
+        self.$image.attr('src', imageData.path);
+        setTimeout(function() {
+          $clonedImage.remove();
+        }, 100);
+      }
+
       self.$image
         .css({
           'position': 'absolute'
