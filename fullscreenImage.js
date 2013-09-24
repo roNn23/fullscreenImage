@@ -14,15 +14,18 @@
         400,
         500,
         700,
+        800,
+        900,
         1000,
+        1250,
         1500,
+        1750,
         2000,
         3000,
         5000,
         10000
       ],
-      onReady: function() {},
-      onSlideEnd: function() {}
+      onReady: function() {}
     };
 
     // Extending options
@@ -40,7 +43,6 @@
     self.refreshTimeout = 0;
   }
 
-  // Separate functionality from object creation
   fullscreenImage.prototype = {
 
     init: function() {
@@ -79,14 +81,17 @@
     initImage: function(imageData) {
       var self = this;
 
-      self.placeImage(imageData);
-      self.resizeImage(imageData);
+      self.placeImage(imageData, function() {
+        self.resizeImage(imageData);
+      });
 
       self.$window.resize(function() {
         self.resizeImage(imageData);
       });
 
-      self.$wrapper.fadeIn();
+      self.$wrapper.fadeIn(function() {
+        self.$wrapper.trigger('ready');
+      });
     },
 
     refreshImage: function() {
@@ -136,26 +141,25 @@
       newHeight = imgHeight * widthRatio;
 
       if(widthRatio >= heightRatio) {
-        self.$image.css({
-          'width': self.winWidth + 'px',
-          'height': newHeight + 'px'
-        });
-
-        self.$image.css({
-          'top': ((newHeight - self.winHeight)/2) * -1,
-          'left': 0
-        });
+        newWidth     = self.winWidth;
+        newImageTop  = ((newHeight - self.winHeight)/2) * -1;
+        newImageLeft = 0;
       } else {
-        self.$image.css({
-          'width': newWidth + 'px',
-          'height': self.winHeight + 'px'
-        });
-
-        self.$image.css({
-          'top': 0,
-          'left': ((self.$image.width() - self.winWidth)/2) * -1
-        });
+        newHeight    = self.winHeight;
+        newImageTop  = 0;
+        newImageLeft = ((newWidth - self.winWidth)/2) * -1;
       }
+
+      self.$image
+        .css({
+          'width': newWidth,
+          'height': newHeight,
+          'top': newImageTop,
+          'left': newImageLeft
+        })
+        .attr('width', newWidth)
+        .attr('height', newHeight)
+      ;
     },
 
     loadImage: function(callback) {
@@ -175,8 +179,10 @@
       }, 'json');
     },
 
-    placeImage: function(imageData) {
+    placeImage: function(imageData, callback) {
       var self = this;
+
+      var $clonedImage;
 
       if(self.$image instanceof jQuery == false) {
         self.$image = $('<img src="' + imageData.path + '">');
@@ -184,7 +190,9 @@
         // Copy image, add new one, delete old to prevent flickering in webkit
         $clonedImage = self.$image.clone();
         $clonedImage.appendTo(self.$wrapper);
+
         self.$image.attr('src', imageData.path);
+
         setTimeout(function() {
           $clonedImage.remove();
         }, 100);
@@ -196,6 +204,9 @@
         })
         .appendTo(self.$wrapper)
       ;
+
+      if(typeof(callback) === 'function')
+        callback();
     }
   };
 
@@ -225,11 +236,6 @@
       }
     }
   }
-
-  // http://gistflow.com/posts/342-how-refresh-a-stored-jquery-selector-variable
-  $.fn.refreshElement = function() {
-    return $(this.selector);
-  };
 
   // The actual plugin
   $.fn.fullscreenImage = function(options) {
