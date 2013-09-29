@@ -171,7 +171,8 @@
         'action': 'getSizedImage',
         'imagePath': self.opts.imagePath,
         'widthBreakPoints': self.opts.widthBreakPoints,
-        'rootPath': self.opts.rootPath
+        'rootPath': self.opts.rootPath,
+        'pixelRatio': self.getPixelRatio
       };
 
       $.post(self.opts.pathToPHP, postVars, function(imageData) {
@@ -207,6 +208,19 @@
 
       if(typeof(callback) === 'function')
         callback();
+    },
+
+    getPixelRatio: function() {
+      var self = this;
+
+      var pixelRatio;
+
+      if(!!window.devicePixelRatio)
+        pixelRatio = window.devicePixelRatio;
+      else
+        pixelRatio = 1;
+
+      return pixelRatio;
     }
   };
 

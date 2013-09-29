@@ -13,6 +13,8 @@ class fullscreenImage {
     $this->winWidth  = $_POST['winWidth'];
     $this->winHeight = $_POST['winHeight'];
 
+    $this->pixelRatio = $_POST['pixelRatio'];
+
     $this->widthBreakPoints = $_POST['widthBreakPoints'];
 
     $newImageData = $this->getNewImageData();
@@ -90,8 +92,8 @@ class fullscreenImage {
 
     $dimensions = new stdClass();
 
-    $dimensions->width  = $newImageWidth;
-    $dimensions->height = $newImageHeight;
+    $dimensions->width  = $newImageWidth * $this->pixelRatio;
+    $dimensions->height = $newImageHeight * $this->pixelRatio;
 
     return $dimensions;
   }
