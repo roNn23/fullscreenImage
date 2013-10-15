@@ -148,6 +148,8 @@
     },
 
     onResize: function() {
+      var self = this;
+
       self.initVars();
       self.resizeWrapper();
       self.refreshImage();
