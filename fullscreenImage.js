@@ -1,6 +1,6 @@
 (function($){
 
-  function fullscreenImage(el, options) {
+  function FullscreenImage(el, options) {
     var self = this;
 
     // Defaults
@@ -43,17 +43,19 @@
     self.refreshTimeout = 0;
   }
 
-  fullscreenImage.prototype = {
+  FullscreenImage.prototype = {
 
-    init: function() {
+    FullscreenImage: function() {
       var self = this;
 
-      self.initVars();
-      self.initWrapper();
-      self.onResize();
-      self.loadImage(function(imageData) {
-        self.initImage(imageData);
-      });
+      self.prepareScript();
+      self.runScript();
+    },
+
+    prepareScript: function() {
+      var self = this;
+
+      self.bindEvents();
     },
 
     initWrapper: function() {
@@ -89,9 +91,39 @@
         self.resizeImage(imageData);
       });
 
+      if(self.hasImagesLoadedPlugin()) {
+        self.$image.imagesLoaded( function() {
+          self.showImage();
+        });
+      } else {
+        self.showImage();
+      }
+    },
+
+    showImage: function() {
+      var self = this;
+
       self.$wrapper.fadeIn(function() {
         self.$wrapper.trigger('ready');
       });
+    },
+
+    runScript: function() {
+      var self = this;
+
+      self.initVars();
+      self.initWrapper();
+
+      self.loadImage(function(imageData) {
+        self.initImage(imageData);
+      });
+    },
+
+    hasImagesLoadedPlugin: function() {
+      if(typeof imagesLoaded == 'function')
+        return true;
+      else
+        return false;
     },
 
     refreshImage: function() {
@@ -107,14 +139,18 @@
       }, 200);
     },
 
-    onResize: function() {
+    bindEvents: function() {
       var self = this;
 
       self.$window.resize(function() {
-        self.initVars();
-        self.resizeWrapper();
-        self.refreshImage();
+        self.onResize();
       });
+    },
+
+    onResize: function() {
+      self.initVars();
+      self.resizeWrapper();
+      self.refreshImage();
     },
 
     resizeWrapper: function() {
@@ -224,6 +260,10 @@
     }
   };
 
+  /**
+   * @param  {string} string
+   * @return {string}
+   */
   function lowerFirstLetter(string) {
     return string.charAt(0).toLowerCase() + string.slice(1);
   }
@@ -234,32 +274,46 @@
    * @return {void}
    */
   function loadCustomEvents(obj) {
-    var self = obj;
+    var eventName, optionNames, options;
 
-    for (var optionName in self.opts) {
-      var
-        optionValue = self.opts[optionName],
-        optionType  = typeof(optionValue)
-      ;
+    options = obj.opts;
 
-      if(optionType == 'function') {
-        optionNames = optionName.split('on');
-        eventName   = lowerFirstLetter(optionNames[1]);
+    for(var optionName in options) {
+      if(options.hasOwnProperty(optionName)) {
+        var optionValue, optionType;
 
-        self.$wrapper.on(eventName, self.opts[optionName]);
+        optionValue = obj.opts[optionName];
+        optionType  = typeof(optionValue);
+
+        if (optionType == 'function') {
+          optionNames = optionName.split('on');
+          eventName   = lowerFirstLetter(optionNames[1]);
+
+          obj.$wrapper.on(eventName, obj.opts[optionName]);
+        }
       }
     }
   }
 
-  // The actual plugin
-  $.fn.fullscreenImage = function(options) {
+  /**
+   * The actual plugin
+   * @param  {object} options
+   * @return {object}
+   */
+  $.fn.FullscreenImage = function(options) {
+    var rev;
+
+    rev = {};
+
     if(this.length) {
       this.each(function() {
-        var rev = new fullscreenImage(this, options);
-        rev.init();
+        rev = new FullscreenImage(this, options);
         loadCustomEvents(rev);
-        $(this).data('fullscreenImage', rev);
+        rev.FullscreenImage();
+        $(this).data('FullscreenImage', rev);
       });
     }
+
+    return rev;
   };
 })(jQuery);
